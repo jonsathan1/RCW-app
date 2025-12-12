@@ -44,9 +44,9 @@ if crimes_filename in dataframes:
     crimes_df = dataframes[crimes_filename]
     all_crimes = crimes_df["Title"].dropna().tolist()
 
-    # Search box for mobile-friendly crime filtering
     search_query = st.text_input("Search for a crime:")
 
+    # Filter crimes based on input
     if search_query:
         filtered_crimes = [c for c in all_crimes if search_query.lower() in c.lower()]
         if not filtered_crimes:
@@ -54,12 +54,22 @@ if crimes_filename in dataframes:
     else:
         filtered_crimes = all_crimes
 
-    selected_crime = st.selectbox("Select a crime:", filtered_crimes)
+    st.markdown("### Select a crime:")
+    selected_crime = None
+
+    for crime in filtered_crimes:
+        if st.button(crime, key=f"crime_{crime}"):
+            selected_crime = crime
+            st.session_state["selected_crime"] = crime  # preserve selection
+
+    # Restore previous selection if it exists
+    if "selected_crime" in st.session_state:
+        selected_crime = st.session_state["selected_crime"]
 
 # ------------------------------------------------------------
 # 3. SHOW AVENUES AND ELEMENTS
 # ------------------------------------------------------------
-if elements_filename in dataframes and 'selected_crime' in locals():
+if elements_filename in dataframes and 'selected_crime' in locals() and selected_crime:
     elements_df = dataframes[elements_filename]
 
     # Filter element groups for the selected crime
@@ -69,7 +79,7 @@ if elements_filename in dataframes and 'selected_crime' in locals():
     if avenues:
         st.markdown("### Select an avenue of commission:")
         for avenue in avenues:
-            if st.button(avenue):
+            if st.button(avenue, key=f"avenue_{avenue}"):
                 selected_avenue = avenue
 
                 # Retrieve group_id for the clicked avenue
