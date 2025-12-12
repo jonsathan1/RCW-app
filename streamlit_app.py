@@ -85,4 +85,8 @@ if elements_filename in dataframes and 'selected_crime' in locals():
                     elements_list = element_rows["element_text"].dropna().tolist()
 
                     # Display elements in copy-friendly format
-                    st.markdown("### Elements of the crime
+                    st.markdown("### Elements of the crime (copyable):")
+                    checkbox_text = "\n".join([f"[ ] {elem}" for elem in elements_list])
+                    st.markdown(f"```\n{checkbox_text}\n```")
+    else:
+        st.info("No avenues found for this crime.")
