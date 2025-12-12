@@ -4,7 +4,6 @@ import pandas as pd
 # ------------------------------------------------------------
 # 1. AUTOMATIC GOOGLE SHEETS IMPORT
 # ------------------------------------------------------------
-
 SHEET_ID = "1zyRj8Idn6SE0wd3iBBefz8Bk6-U2Cce98AdxGVDbox0"
 CRIMES_SHEET_NAME = "crimes"
 ELEMENTS_SHEET_NAME = "elements"
@@ -39,16 +38,27 @@ dataframes = {
 st.success("Google Sheets loaded successfully! The program is ready.")
 
 # ------------------------------------------------------------
-# 2. EXISTING PROGRAM LOGIC (unchanged)
+# 2. MOBILE-FRIENDLY CRIME SELECTION
 # ------------------------------------------------------------
-
-# Step 3: Select crime from dropdown
 if crimes_filename in dataframes:
     crimes_df = dataframes[crimes_filename]
-    option_list = crimes_df["Title"].dropna().tolist()
-    selected_crime = st.selectbox("Select a crime:", option_list)
+    all_crimes = crimes_df["Title"].dropna().tolist()
 
-# Step 4: Show avenues as buttons based on selected crime
+    # Search box for mobile-friendly crime filtering
+    search_query = st.text_input("Search for a crime:")
+
+    if search_query:
+        filtered_crimes = [c for c in all_crimes if search_query.lower() in c.lower()]
+        if not filtered_crimes:
+            st.warning("No crimes match your search.")
+    else:
+        filtered_crimes = all_crimes
+
+    selected_crime = st.selectbox("Select a crime:", filtered_crimes)
+
+# ------------------------------------------------------------
+# 3. SHOW AVENUES AND ELEMENTS
+# ------------------------------------------------------------
 if elements_filename in dataframes and 'selected_crime' in locals():
     elements_df = dataframes[elements_filename]
 
@@ -56,25 +66,23 @@ if elements_filename in dataframes and 'selected_crime' in locals():
     avenue_rows = elements_df[elements_df["Title"] == selected_crime]
     avenues = avenue_rows["group_text"].dropna().tolist()
 
-    st.markdown("### Select an avenue of commission:")
+    if avenues:
+        st.markdown("### Select an avenue of commission:")
+        for avenue in avenues:
+            if st.button(avenue):
+                selected_avenue = avenue
 
-    for avenue in avenues:
-        if st.button(avenue):
-            selected_avenue = avenue
+                # Retrieve group_id for the clicked avenue
+                group_number_row = elements_df[elements_df["group_text"] == selected_avenue]
+                if not group_number_row.empty:
+                    group_id = group_number_row["group_id"].iloc[0]
 
-            # Retrieve group_id for the clicked avenue
-            group_number_row = elements_df[elements_df["group_text"] == selected_avenue]
-            group_id = group_number_row["group_id"].iloc[0]
+                    # Get all elements matching this group_id + crime
+                    element_rows = elements_df[
+                        (elements_df["group_id"] == group_id) &
+                        (elements_df["Title"] == selected_crime)
+                    ]
+                    elements_list = element_rows["element_text"].dropna().tolist()
 
-            if not group_number_row.empty:
-                # Get all elements matching this group_id + crime
-                element_rows = elements_df[
-                    (elements_df["group_id"] == group_id) &
-                    (elements_df["Title"] == selected_crime)
-                ]
-                elements_list = element_rows["element_text"].dropna().tolist()
-
-                # Display elements in copy-friendly format
-                st.markdown("### Elements of the crime (copyable):")
-                checkbox_text = "\n".join([f"[ ] {elem}" for elem in elements_list])
-                st.markdown(f"```\n{checkbox_text}\n```")
+                    # Display elements in copy-friendly format
+                    st.markdown("### Elements of the crime
