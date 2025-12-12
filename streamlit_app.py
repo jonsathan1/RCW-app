@@ -38,38 +38,17 @@ dataframes = {
 st.success("Google Sheets loaded successfully! The program is ready.")
 
 # ------------------------------------------------------------
-# 2. MOBILE-FRIENDLY CRIME SELECTION
+# 2. EXISTING PROGRAM LOGIC
 # ------------------------------------------------------------
+
+# Step 3: Select crime from dropdown
 if crimes_filename in dataframes:
     crimes_df = dataframes[crimes_filename]
-    all_crimes = crimes_df["Title"].dropna().tolist()
+    option_list = crimes_df["Title"].dropna().tolist()
+    selected_crime = st.selectbox("Select a crime:", option_list)
 
-    search_query = st.text_input("Search for a crime:")
-
-    # Filter crimes based on input
-    if search_query:
-        filtered_crimes = [c for c in all_crimes if search_query.lower() in c.lower()]
-        if not filtered_crimes:
-            st.warning("No crimes match your search.")
-    else:
-        filtered_crimes = all_crimes
-
-    st.markdown("### Select a crime:")
-    selected_crime = None
-
-    for crime in filtered_crimes:
-        if st.button(crime, key=f"crime_{crime}"):
-            selected_crime = crime
-            st.session_state["selected_crime"] = crime  # preserve selection
-
-    # Restore previous selection if it exists
-    if "selected_crime" in st.session_state:
-        selected_crime = st.session_state["selected_crime"]
-
-# ------------------------------------------------------------
-# 3. SHOW AVENUES AND ELEMENTS
-# ------------------------------------------------------------
-if elements_filename in dataframes and 'selected_crime' in locals() and selected_crime:
+# Step 4: Show avenues as buttons based on selected crime
+if elements_filename in dataframes and 'selected_crime' in locals():
     elements_df = dataframes[elements_filename]
 
     # Filter element groups for the selected crime
