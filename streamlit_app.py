@@ -35,7 +35,7 @@ dataframes = {
     elements_filename: elements_df
 }
 
-st.success("Google Sheets loaded successfully! The program is ready.")
+# st.success("Google Sheets loaded successfully! The program is ready.")
 
 # ------------------------------------------------------------
 # 2. EXISTING PROGRAM LOGIC
