@@ -19,24 +19,39 @@ def load_sheet_as_df(sheet_name: str) -> pd.DataFrame:
     return pd.read_csv(url)
 
 # ------------------------------------------------------------
-# 2. LOAD DATA ONCE PER SESSION
+# 2. RENDER-SAFE TEXT HELPERS
+# ------------------------------------------------------------
+def escape_markdown(text: str) -> str:
+    """
+    Escapes characters that Streamlit/Markdown interpret specially.
+    Currently escapes '$' to prevent LaTeX rendering.
+    """
+    if not isinstance(text, str):
+        return text
+    return text.replace("$", r"\$")
+
+# ------------------------------------------------------------
+# 3. LOAD DATA ONCE PER SESSION
 # ------------------------------------------------------------
 if "dataframes" not in st.session_state:
-    crimes_df = load_sheet_as_df(CRIMES_SHEET_NAME)
-    elements_df = load_sheet_as_df(ELEMENTS_SHEET_NAME)
-
     st.session_state["dataframes"] = {
-        "crimes": crimes_df,
-        "elements": elements_df
+        "crimes": load_sheet_as_df(CRIMES_SHEET_NAME),
+        "elements": load_sheet_as_df(ELEMENTS_SHEET_NAME),
     }
 
 crimes_df = st.session_state["dataframes"]["crimes"]
 elements_df = st.session_state["dataframes"]["elements"]
 
 # ------------------------------------------------------------
-# 3. SELECT CRIME
+# 4. SELECT CRIME
 # ------------------------------------------------------------
-crime_titles = crimes_df["Title"].dropna().unique().tolist()
+crime_titles = (
+    crimes_df["Title"]
+    .dropna()
+    .unique()
+    .tolist()
+)
+
 selected_crime = st.selectbox("Select a crime:", crime_titles)
 
 # Reset selected avenue if crime changes
@@ -45,7 +60,7 @@ if selected_crime != st.session_state.get("last_crime"):
     st.session_state["last_crime"] = selected_crime
 
 # ------------------------------------------------------------
-# 4. SHOW AVENUES OF COMMISSION
+# 5. SHOW AVENUES OF COMMISSION
 # ------------------------------------------------------------
 avenue_rows = elements_df[
     elements_df["Title"] == selected_crime
@@ -65,17 +80,21 @@ if not avenues:
 st.markdown("### Select an avenue of commission:")
 
 for avenue in avenues:
-    if st.button(avenue, key=f"avenue_{selected_crime}_{avenue}"):
+    display_avenue = escape_markdown(avenue)
+
+    if st.button(
+        display_avenue,
+        key=f"avenue_{selected_crime}_{avenue}"
+    ):
         st.session_state["selected_avenue"] = avenue
 
 # ------------------------------------------------------------
-# 5. DISPLAY ELEMENTS FOR SELECTED AVENUE
+# 6. DISPLAY ELEMENTS FOR SELECTED AVENUE
 # ------------------------------------------------------------
 if "selected_avenue" in st.session_state:
     selected_avenue = st.session_state["selected_avenue"]
 
-    # 🔑 CRITICAL FIX:
-    # group_id lookup must be scoped to BOTH crime and avenue
+    # 🔑 group_id MUST be scoped to both crime AND avenue
     group_row = elements_df[
         (elements_df["Title"] == selected_crime) &
         (elements_df["group_text"] == selected_avenue)
@@ -104,5 +123,9 @@ if "selected_avenue" in st.session_state:
 
     st.markdown("### Elements of the crime (copyable):")
 
-    checklist_text = "\n".join(f"[ ] {elem}" for elem in elements_list)
+    checklist_text = "\n".join(
+        f"[ ] {escape_markdown(elem)}"
+        for elem in elements_list
+    )
+
     st.markdown(f"```\n{checklist_text}\n```")
