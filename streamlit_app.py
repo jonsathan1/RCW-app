@@ -14,81 +14,95 @@ def make_csv_export_url(sheet_name: str) -> str:
         f"/gviz/tq?tqx=out:csv&sheet={sheet_name}"
     )
 
-def load_sheet_as_df(url: str) -> pd.DataFrame:
+def load_sheet_as_df(sheet_name: str) -> pd.DataFrame:
+    url = make_csv_export_url(sheet_name)
     return pd.read_csv(url)
 
 # ------------------------------------------------------------
 # 2. LOAD DATA ONCE PER SESSION
 # ------------------------------------------------------------
-crimes_filename = "Crimes and Their Elements - Crimes"
-elements_filename = "Crimes and Their Elements - Elements"
-
 if "dataframes" not in st.session_state:
-    crimes_url = make_csv_export_url(CRIMES_SHEET_NAME)
-    elements_url = make_csv_export_url(ELEMENTS_SHEET_NAME)
-
-    crimes_df = load_sheet_as_df(crimes_url)
-    elements_df = load_sheet_as_df(elements_url)
-
-    # Optional: save locally if you still want the CSVs
-    crimes_df.to_csv(f"{crimes_filename}.csv", index=False)
-    elements_df.to_csv(f"{elements_filename}.csv", index=False)
+    crimes_df = load_sheet_as_df(CRIMES_SHEET_NAME)
+    elements_df = load_sheet_as_df(ELEMENTS_SHEET_NAME)
 
     st.session_state["dataframes"] = {
-        crimes_filename: crimes_df,
-        elements_filename: elements_df
+        "crimes": crimes_df,
+        "elements": elements_df
     }
 
-dataframes = st.session_state["dataframes"]
+crimes_df = st.session_state["dataframes"]["crimes"]
+elements_df = st.session_state["dataframes"]["elements"]
 
 # ------------------------------------------------------------
 # 3. SELECT CRIME
 # ------------------------------------------------------------
-if crimes_filename in dataframes:
-    crimes_df = dataframes[crimes_filename]
+crime_titles = crimes_df["Title"].dropna().unique().tolist()
+selected_crime = st.selectbox("Select a crime:", crime_titles)
 
-    option_list = crimes_df["Title"].dropna().tolist()
-    selected_crime = st.selectbox("Select a crime:", option_list)
+# Reset selected avenue if crime changes
+if selected_crime != st.session_state.get("last_crime"):
+    st.session_state.pop("selected_avenue", None)
+    st.session_state["last_crime"] = selected_crime
 
 # ------------------------------------------------------------
-# 4. SHOW AVENUES AS BUTTONS
+# 4. SHOW AVENUES OF COMMISSION
 # ------------------------------------------------------------
-if elements_filename in dataframes and "selected_crime" in locals():
-    elements_df = dataframes[elements_filename]
+avenue_rows = elements_df[
+    elements_df["Title"] == selected_crime
+]
 
-    avenue_rows = elements_df[elements_df["Title"] == selected_crime]
-    avenues = avenue_rows["group_text"].dropna().tolist()
+avenues = (
+    avenue_rows["group_text"]
+    .dropna()
+    .unique()
+    .tolist()
+)
 
-    if avenues:
-        st.markdown("### Select an avenue of commission:")
+if not avenues:
+    st.info("No avenues found for this crime.")
+    st.stop()
 
-        for avenue in avenues:
-            if st.button(avenue, key=f"avenue_{avenue}"):
-                selected_avenue = avenue
+st.markdown("### Select an avenue of commission:")
 
-                group_number_row = elements_df[
-                    elements_df["group_text"] == selected_avenue
-                ]
+for avenue in avenues:
+    if st.button(avenue, key=f"avenue_{selected_crime}_{avenue}"):
+        st.session_state["selected_avenue"] = avenue
 
-                if not group_number_row.empty:
-                    group_id = group_number_row["group_id"].iloc[0]
+# ------------------------------------------------------------
+# 5. DISPLAY ELEMENTS FOR SELECTED AVENUE
+# ------------------------------------------------------------
+if "selected_avenue" in st.session_state:
+    selected_avenue = st.session_state["selected_avenue"]
 
-                    element_rows = elements_df[
-                        (elements_df["group_id"] == group_id) &
-                        (elements_df["Title"] == selected_crime)
-                    ]
+    # 🔑 CRITICAL FIX:
+    # group_id lookup must be scoped to BOTH crime and avenue
+    group_row = elements_df[
+        (elements_df["Title"] == selected_crime) &
+        (elements_df["group_text"] == selected_avenue)
+    ]
 
-                    elements_list = (
-                        element_rows["element_text"]
-                        .dropna()
-                        .tolist()
-                    )
+    if group_row.empty:
+        st.error("No matching elements found for this avenue.")
+        st.stop()
 
-                    st.markdown("### Elements of the crime (copyable):")
-                    checkbox_text = "\n".join(
-                        f"[ ] {elem}" for elem in elements_list
-                    )
-                    st.markdown(f"```\n{checkbox_text}\n```")
+    group_id = group_row["group_id"].iloc[0]
 
-    else:
-        st.info("No avenues found for this crime.")
+    element_rows = elements_df[
+        (elements_df["Title"] == selected_crime) &
+        (elements_df["group_id"] == group_id)
+    ]
+
+    elements_list = (
+        element_rows["element_text"]
+        .dropna()
+        .tolist()
+    )
+
+    if not elements_list:
+        st.warning("This avenue has no listed elements.")
+        st.stop()
+
+    st.markdown("### Elements of the crime (copyable):")
+
+    checklist_text = "\n".join(f"[ ] {elem}" for elem in elements_list)
+    st.markdown(f"```\n{checklist_text}\n```")
