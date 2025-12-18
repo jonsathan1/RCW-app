@@ -94,7 +94,7 @@ for avenue in avenues:
 if "selected_avenue" in st.session_state:
     selected_avenue = st.session_state["selected_avenue"]
 
-    # 🔑 group_id MUST be scoped to both crime AND avenue
+    # 🔑 group_id must be scoped to both crime AND avenue
     group_row = elements_df[
         (elements_df["Title"] == selected_crime) &
         (elements_df["group_text"] == selected_avenue)
@@ -129,3 +129,13 @@ if "selected_avenue" in st.session_state:
     )
 
     st.markdown(f"```\n{checklist_text}\n```")
+
+# ------------------------------------------------------------
+# 7. AUTHOR CREDIT (SUBTLE)
+# ------------------------------------------------------------
+with st.sidebar:
+    st.markdown("---")
+    st.markdown(
+        "<small>Author: <strong>Jonathan Sturgeon</strong></small>",
+        unsafe_allow_html=True
+    )
