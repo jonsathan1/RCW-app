@@ -129,13 +129,5 @@ if "selected_avenue" in st.session_state:
     )
 
     st.markdown(f"```\n{checklist_text}\n```")
-
-# ------------------------------------------------------------
-# 7. AUTHOR CREDIT (SUBTLE)
-# ------------------------------------------------------------
-with st.sidebar:
-    st.markdown("---")
-    st.markdown(
-        "<small>Author: <strong>Jonathan Sturgeon</strong></small>",
-        unsafe_allow_html=True
+    
     )
