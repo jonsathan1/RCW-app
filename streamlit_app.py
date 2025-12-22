@@ -8,15 +8,18 @@ SHEET_ID = "1zyRj8Idn6SE0wd3iBBefz8Bk6-U2Cce98AdxGVDbox0"
 CRIMES_SHEET_NAME = "crimes"
 ELEMENTS_SHEET_NAME = "elements"
 
+
 def make_csv_export_url(sheet_name: str) -> str:
     return (
         f"https://docs.google.com/spreadsheets/d/{SHEET_ID}"
         f"/gviz/tq?tqx=out:csv&sheet={sheet_name}"
     )
 
+
 def load_sheet_as_df(sheet_name: str) -> pd.DataFrame:
     url = make_csv_export_url(sheet_name)
     return pd.read_csv(url)
+
 
 # ------------------------------------------------------------
 # 2. RENDER-SAFE TEXT HELPERS
@@ -29,6 +32,7 @@ def escape_markdown(text: str) -> str:
     if not isinstance(text, str):
         return text
     return text.replace("$", r"\$")
+
 
 # ------------------------------------------------------------
 # 3. LOAD DATA ONCE PER SESSION
@@ -124,8 +128,8 @@ if "selected_avenue" in st.session_state:
     st.markdown("### Elements of the crime (copyable):")
 
     checklist_text = "\n".join(
-        f"[ ] {escape_markdown(elem)}"
+        f"- [ ] {escape_markdown(elem)}"
         for elem in elements_list
     )
 
-    st.markdown(f"```\n{checklist_text}\n```")
+    st.markdown(checklist_text)
