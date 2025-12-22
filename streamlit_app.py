@@ -137,7 +137,7 @@ if "selected_avenue" in st.session_state:
     )
 
     # --------------------------------------------------------
-    # COPYABLE VIEW (AUTO-EXPANDED BASED ON CHAR COUNT)
+    # COPYABLE VIEW WITH AUTO-EXPANDED HEIGHT + COPY BUTTON
     # --------------------------------------------------------
     st.markdown("### Copyable checklist:")
 
@@ -147,7 +147,7 @@ if "selected_avenue" in st.session_state:
     )
 
     # Estimate height for wrapped text
-    AVG_CHARS_PER_LINE = 90      # adjust based on your screen width
+    AVG_CHARS_PER_LINE = 90      # adjust based on screen width
     LINE_HEIGHT_PX = 28
     PADDING_PX = 40
     MAX_HEIGHT_PX = 1200
@@ -159,6 +159,17 @@ if "selected_avenue" in st.session_state:
 
     calculated_height = estimated_lines * LINE_HEIGHT_PX + PADDING_PX
 
+    # Copy All button
+    if st.button("📋 Copy All"):
+        try:
+            st.clipboard.copy(copy_text)
+            st.success("✅ Copied to clipboard!")
+        except Exception:
+            st.warning(
+                "⚠️ Clipboard copy not supported in this environment. Select manually."
+            )
+
+    # Display text area
     st.text_area(
         label="",
         value=copy_text,
@@ -166,5 +177,5 @@ if "selected_avenue" in st.session_state:
     )
 
     st.caption(
-        "Tip: Click inside the box, press Ctrl+A (Cmd+A on Mac), then copy."
+        "Tip: Use the button above to copy everything at once, or select manually."
     )
