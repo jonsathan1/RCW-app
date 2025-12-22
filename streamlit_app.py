@@ -137,7 +137,7 @@ if "selected_avenue" in st.session_state:
     )
 
     # --------------------------------------------------------
-    # COPYABLE VIEW WITH AUTO-EXPANDED HEIGHT + COPY BUTTON
+    # COPYABLE VIEW WITH BUILT-IN COPY BUTTON
     # --------------------------------------------------------
     st.markdown("### Copyable checklist:")
 
@@ -159,23 +159,9 @@ if "selected_avenue" in st.session_state:
 
     calculated_height = estimated_lines * LINE_HEIGHT_PX + PADDING_PX
 
-    # Copy All button
-    if st.button("📋 Copy All"):
-        try:
-            st.clipboard.copy(copy_text)
-            st.success("✅ Copied to clipboard!")
-        except Exception:
-            st.warning(
-                "⚠️ Clipboard copy not supported in this environment. Select manually."
-            )
-
-    # Display text area
-    st.text_area(
-        label="",
-        value=copy_text,
-        height=min(calculated_height, MAX_HEIGHT_PX),
-    )
+    # Use st.code to show copyable checklist with top-right copy button
+    st.code(copy_text, language=None)
 
     st.caption(
-        "Tip: Use the button above to copy everything at once, or select manually."
+        "Tip: Use the small button in the top-right of this box to copy all at once."
     )
