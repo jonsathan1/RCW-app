@@ -98,7 +98,6 @@ for avenue in avenues:
 if "selected_avenue" in st.session_state:
     selected_avenue = st.session_state["selected_avenue"]
 
-    # 🔑 group_id MUST be scoped to both crime AND avenue
     group_row = elements_df[
         (elements_df["Title"] == selected_crime) &
         (elements_df["group_text"] == selected_avenue)
@@ -125,11 +124,32 @@ if "selected_avenue" in st.session_state:
         st.warning("This avenue has no listed elements.")
         st.stop()
 
-    st.markdown("### Elements of the crime (copyable):")
+    # --------------------------------------------------------
+    # READABLE VIEW
+    # --------------------------------------------------------
+    st.markdown("### Elements of the crime:")
 
-    checklist_text = "\n".join(
-        f"- [ ] {escape_markdown(elem)}"
+    st.markdown(
+        "\n".join(
+            f"- {escape_markdown(elem)}"
+            for elem in elements_list
+        )
+    )
+
+    # --------------------------------------------------------
+    # COPYABLE VIEW
+    # --------------------------------------------------------
+    st.markdown("### Copyable checklist:")
+
+    copy_text = "\n".join(
+        f"[ ] {elem}"
         for elem in elements_list
     )
 
-    st.markdown(checklist_text)
+    st.text_area(
+        label="",
+        value=copy_text,
+        height=min(400, 30 * len(elements_list)),
+    )
+
+    st.caption("Tip: Click inside the box, press Ctrl+A (Cmd+A on Mac), then copy.")
