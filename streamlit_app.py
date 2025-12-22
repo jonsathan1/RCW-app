@@ -137,7 +137,7 @@ if "selected_avenue" in st.session_state:
     )
 
     # --------------------------------------------------------
-    # COPYABLE VIEW
+    # COPYABLE VIEW (AUTO-EXPANDED)
     # --------------------------------------------------------
     st.markdown("### Copyable checklist:")
 
@@ -146,10 +146,20 @@ if "selected_avenue" in st.session_state:
         for elem in elements_list
     )
 
+    LINE_HEIGHT_PX = 28
+    PADDING_PX = 20
+    MAX_HEIGHT_PX = 900
+
+    calculated_height = (
+        LINE_HEIGHT_PX * len(elements_list) + PADDING_PX
+    )
+
     st.text_area(
         label="",
         value=copy_text,
-        height=min(400, 30 * len(elements_list)),
+        height=min(calculated_height, MAX_HEIGHT_PX),
     )
 
-    st.caption("Tip: Click inside the box, press Ctrl+A (Cmd+A on Mac), then copy.")
+    st.caption(
+        "Tip: Click inside the box, press Ctrl+A (Cmd+A on Mac), then copy."
+    )
