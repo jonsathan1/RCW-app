@@ -137,11 +137,12 @@ if "selected_avenue" in st.session_state:
     )
 
     # --------------------------------------------------------
-    # COPYABLE VIEW WITH BUILT-IN COPY BUTTON
+    # COPYABLE VIEW WITH BUILT-IN COPY BUTTON + SPACING
     # --------------------------------------------------------
     st.markdown("### Copyable checklist:")
 
-    copy_text = "\n".join(
+    # Add extra spacing between each checklist item for nicer pasting
+    copy_text = "\n\n".join(
         f"[ ] {elem}"
         for elem in elements_list
     )
@@ -159,7 +160,7 @@ if "selected_avenue" in st.session_state:
 
     calculated_height = estimated_lines * LINE_HEIGHT_PX + PADDING_PX
 
-    # Use st.code to show copyable checklist with top-right copy button
+    # Use st.code to show the copyable checklist with built-in top-right copy button
     st.code(copy_text, language=None)
 
     st.caption(
