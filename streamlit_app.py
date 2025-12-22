@@ -166,3 +166,9 @@ if "selected_avenue" in st.session_state:
     st.caption(
         "Tip: Use the small button in the top-right of this box to copy all at once."
     )
+
+# ------------------------------------------------------------
+# 7. SUBTLE AUTHORSHIP AT THE BOTTOM
+# ------------------------------------------------------------
+st.markdown("---")  # optional horizontal divider
+st.caption("© 2025 Jonathan Sturgeon – Hosted by Streamlit")
