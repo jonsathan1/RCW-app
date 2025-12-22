@@ -137,7 +137,7 @@ if "selected_avenue" in st.session_state:
     )
 
     # --------------------------------------------------------
-    # COPYABLE VIEW (AUTO-EXPANDED)
+    # COPYABLE VIEW (AUTO-EXPANDED BASED ON CHAR COUNT)
     # --------------------------------------------------------
     st.markdown("### Copyable checklist:")
 
@@ -146,13 +146,18 @@ if "selected_avenue" in st.session_state:
         for elem in elements_list
     )
 
+    # Estimate height for wrapped text
+    AVG_CHARS_PER_LINE = 90      # adjust based on your screen width
     LINE_HEIGHT_PX = 28
-    PADDING_PX = 20
-    MAX_HEIGHT_PX = 900
+    PADDING_PX = 40
+    MAX_HEIGHT_PX = 1200
 
-    calculated_height = (
-        LINE_HEIGHT_PX * len(elements_list) + PADDING_PX
+    estimated_lines = sum(
+        max(1, len(elem) // AVG_CHARS_PER_LINE + 1)
+        for elem in elements_list
     )
+
+    calculated_height = estimated_lines * LINE_HEIGHT_PX + PADDING_PX
 
     st.text_area(
         label="",
