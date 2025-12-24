@@ -8,31 +8,24 @@ SHEET_ID = "1zyRj8Idn6SE0wd3iBBefz8Bk6-U2Cce98AdxGVDbox0"
 CRIMES_SHEET_NAME = "crimes"
 ELEMENTS_SHEET_NAME = "elements"
 
-
 def make_csv_export_url(sheet_name: str) -> str:
     return (
         f"https://docs.google.com/spreadsheets/d/{SHEET_ID}"
         f"/gviz/tq?tqx=out:csv&sheet={sheet_name}"
     )
 
-
 def load_sheet_as_df(sheet_name: str) -> pd.DataFrame:
     url = make_csv_export_url(sheet_name)
     return pd.read_csv(url)
-
 
 # ------------------------------------------------------------
 # 2. RENDER-SAFE TEXT HELPERS
 # ------------------------------------------------------------
 def escape_markdown(text: str) -> str:
-    """
-    Escapes characters that Streamlit/Markdown interpret specially.
-    Currently escapes '$' to prevent LaTeX rendering.
-    """
+    """Escapes characters that Streamlit/Markdown interpret specially."""
     if not isinstance(text, str):
         return text
     return text.replace("$", r"\$")
-
 
 # ------------------------------------------------------------
 # 3. LOAD DATA ONCE PER SESSION
@@ -49,7 +42,6 @@ elements_df = st.session_state["dataframes"]["elements"]
 # ------------------------------------------------------------
 # 4. SELECT CRIME (ALPHABETIZED)
 # ------------------------------------------------------------
-# Get unique crime titles and sort alphabetically
 crime_titles = (
     crimes_df["Title"]
     .dropna()
@@ -66,11 +58,17 @@ if selected_crime != st.session_state.get("last_crime"):
     st.session_state["last_crime"] = selected_crime
 
 # ------------------------------------------------------------
-# 5. SHOW AVENUES OF COMMISSION
+# 5. DISPLAY CRIME LEVEL
 # ------------------------------------------------------------
-avenue_rows = elements_df[
-    elements_df["Title"] == selected_crime
-]
+crime_meta = crimes_df[crimes_df["Title"] == selected_crime].iloc[0]
+crime_level = crime_meta["Level"]
+
+st.markdown(f"**Crime Level: {crime_level}**")
+
+# ------------------------------------------------------------
+# 6. SHOW AVENUES OF COMMISSION
+# ------------------------------------------------------------
+avenue_rows = elements_df[elements_df["Title"] == selected_crime]
 
 avenues = (
     avenue_rows["group_text"]
@@ -87,15 +85,11 @@ st.markdown("### Select an avenue of commission:")
 
 for avenue in avenues:
     display_avenue = escape_markdown(avenue)
-
-    if st.button(
-        display_avenue,
-        key=f"avenue_{selected_crime}_{avenue}"
-    ):
+    if st.button(display_avenue, key=f"avenue_{selected_crime}_{avenue}"):
         st.session_state["selected_avenue"] = avenue
 
 # ------------------------------------------------------------
-# 6. DISPLAY ELEMENTS FOR SELECTED AVENUE
+# 7. DISPLAY ELEMENTS FOR SELECTED AVENUE
 # ------------------------------------------------------------
 if "selected_avenue" in st.session_state:
     selected_avenue = st.session_state["selected_avenue"]
@@ -130,7 +124,6 @@ if "selected_avenue" in st.session_state:
     # READABLE VIEW
     # --------------------------------------------------------
     st.markdown("### Elements of the crime:")
-
     st.markdown(
         "\n".join(
             f"- {escape_markdown(elem)}"
@@ -143,34 +136,16 @@ if "selected_avenue" in st.session_state:
     # --------------------------------------------------------
     st.markdown("### Copyable checklist:")
 
-    # Add extra spacing between each checklist item for nicer pasting
     copy_text = "\n\n".join(
         f"[ ] {elem}"
         for elem in elements_list
     )
 
-    # Estimate height for wrapped text
-    AVG_CHARS_PER_LINE = 90      # adjust based on screen width
-    LINE_HEIGHT_PX = 28
-    PADDING_PX = 40
-    MAX_HEIGHT_PX = 1200
-
-    estimated_lines = sum(
-        max(1, len(elem) // AVG_CHARS_PER_LINE + 1)
-        for elem in elements_list
-    )
-
-    calculated_height = estimated_lines * LINE_HEIGHT_PX + PADDING_PX
-
-    # Use st.code to show the copyable checklist with built-in top-right copy button
     st.code(copy_text, language=None)
-
-    st.caption(
-        "Tip: Use the small button in the top-right of this box to copy all at once."
-    )
+    st.caption("Tip: Use the small button in the top-right of this box to copy all at once.")
 
 # ------------------------------------------------------------
-# 7. SUBTLE AUTHORSHIP AT THE BOTTOM
+# 8. SUBTLE AUTHORSHIP AT THE BOTTOM
 # ------------------------------------------------------------
-st.markdown("---")  # optional horizontal divider
+st.markdown("---")
 st.caption("© 2025 Jonathan Sturgeon – Hosted by Streamlit")
