@@ -58,12 +58,18 @@ if selected_crime != st.session_state.get("last_crime"):
     st.session_state["last_crime"] = selected_crime
 
 # ------------------------------------------------------------
-# 5. DISPLAY CRIME LEVEL
+# 5. DISPLAY CRIME LEVEL AND CLICKABLE RCW
 # ------------------------------------------------------------
 crime_meta = crimes_df[crimes_df["Title"] == selected_crime].iloc[0]
 crime_level = crime_meta["Level"]
+rcw_number = crime_meta["RCW"]
+rcw_url = f"https://app.leg.wa.gov/rcw/default.aspx?cite={rcw_number}"
 
-st.markdown(f"**Crime Level: {crime_level}**")
+st.markdown(
+    f'**Crime Level:** {crime_level} &nbsp; | &nbsp; '
+    f'**RCW:** <a href="{rcw_url}" target="_blank">{rcw_number}</a>',
+    unsafe_allow_html=True
+)
 
 # ------------------------------------------------------------
 # 6. SHOW AVENUES OF COMMISSION
